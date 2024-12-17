@@ -45,8 +45,7 @@ public class KafkaSender {
 
     @PostConstruct
     public void sendMessagesToKafka() {
-        sendMessageWithCompletableFuture("hello " +  KafkaTopicConfig.TOPIC_NAME + " " + LocalDateTime.now());
-        sendMessage2("hello  " + KafkaTopicConfig.TOPIC_NAME_2 + " " + LocalDateTime.now());
-        sendMessage3("hello  " + KafkaTopicConfig.TOPIC_NAME_3 + " " + LocalDateTime.now());
+        sendMessage("hello " +  KafkaTopicConfig.TOPIC_NAME + " " + LocalDateTime.now());
+        sendMessage("THE_MESSAGE_WHICH_WILL_BE_RETRY " +  KafkaTopicConfig.TOPIC_NAME + " " + LocalDateTime.now());
     }
 }

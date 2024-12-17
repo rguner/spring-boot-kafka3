@@ -1,5 +1,6 @@
 package com.guner.kafka.service;
 
+import com.guner.kafka.config.KafkaTopicConfig;
 import com.guner.kafka.model.Greeting;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -15,27 +16,51 @@ import java.net.SocketTimeoutException;
 @Slf4j
 public class KafkaReceiver {
 
-    @KafkaListener(topics = "topic-1", groupId = "group-1")
-    public void listenGroupGroup1(String message) {
-        log.info("-----   Received Message in group group-1 {}", message);
-    }
-
     @RetryableTopic(
             backoff = @Backoff(value = 3000L),
             attempts = "5",
             //autoCreateTopics = "false", it creates even it is false
+            // topic-1-dlt and topic-1-retry topics are created.
             include = RuntimeException.class)
     @KafkaListener(topics = "topic-1", groupId = "group-2")
     public void listenAndRetryIfRequired(String message) {
         log.info("-----   Received Message in group group-2: {}", message);
-        throw new RuntimeException("Receive Exception to test retry mechanism");
+        if (message.startsWith("THE_MESSAGE_WHICH_WILL_BE_RETRY")) {
+            throw new RuntimeException("Receive Exception to test retry mechanism");
+        }
     }
 
+    // for DLT
+    // Log metadata (e.g., headers, exception stack trace).
+    // Reprocess or Archive
+    // Attempt to reprocess the message after resolving the root issue.
+    // If reprocessing is not possible, archive the message for manual intervention.
+    // Use tools like Prometheus, Grafana, or Kafka UI tools to monitor the DLT topic size and message consumption status.
 
-    //@KafkaListener(topics = "topic-1, topic-2", groupId = "group-1")
-    @KafkaListener(topics = "topic-2", groupId = "group-1")
-    public void listenMultipleTopicsGroupGroup1(String message) {
-        log.info("-----   Received Message on topic-2 in group group-1: {}", message);
+
+    // this listener is optional
+    @KafkaListener(topics = "topic-1-dlt", groupId = "dlt-group-id")
+    public void processDeadLetter(String message) {
+        log.info("Processing message from DLT: {}", message);
+
+        // Add your custom logic to handle the message
+        /*
+        try {
+            // Attempt to reprocess or log the error
+            System.out.println("Reprocessing message: " + message);
+            // Re-publish or handle the message as needed
+            //republishMessage(message, KafkaTopicConfig.TOPIC_NAME);
+        } catch (Exception e) {
+            System.err.println("Failed to process DLT message: " + e.getMessage());
+        }
+         */
     }
+
+    /*
+    public void republishMessage(String message, String topic) {
+        kafkaTemplate.send(topic, message);
+        System.out.println("Message republished to topic: " + topic);
+    }
+     */
 
 }
