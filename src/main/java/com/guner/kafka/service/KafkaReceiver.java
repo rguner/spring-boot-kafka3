@@ -16,8 +16,10 @@ import java.net.SocketTimeoutException;
 @Slf4j
 public class KafkaReceiver {
 
+    // https://www.baeldung.com/spring-retry-kafka-consumer
+    // non-blocking retry
     @RetryableTopic(
-            backoff = @Backoff(value = 3000L),
+            backoff = @Backoff(value = 5000L),
             attempts = "5",
             //autoCreateTopics = "false", it creates even it is false
             // topic-1-dlt and topic-1-retry topics are created.
